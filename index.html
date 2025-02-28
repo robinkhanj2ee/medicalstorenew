@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Store Cash Memo</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            background-color: #f8f8f8;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        h2, address {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, button, select, table {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            text-align: left;
+            padding: 8px;
+        }
+        .total {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Medical Store Cash Memo</h2>
+        <address>Dynamic Store Details Based on Template</address>
+
+        <h3>Customer Details</h3>
+        <label for="customer-name">Name:</label>
+        <input type="text" id="customer-name" placeholder="Enter customer name">
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" placeholder="Enter customer address">
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" placeholder="Enter customer phone">
+
+        <label for="date">Date:</label>
+        <input type="date" id="date">
+
+        <h3>Medicine Details</h3>
+        <label for="medicine-name">Medicine Name:</label>
+        <input type="text" id="medicine-name" placeholder="Enter medicine name">
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" placeholder="Enter quantity">
+
+        <label for="price">Price per unit:</label>
+        <input type="number" id="price" placeholder="Enter price">
+
+        <button id="add-medicine">Add Medicine</button>
+
+        <h3>Medicine List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="medicine-list"></tbody>
+        </table>
+
+        <div class="total">Total Amount: <span id="total-amount">0</span></div>
+        <div class="total">VAT (5%): <span id="vat">0</span></div>
+        <div class="total">Discount (5%): <span id="discount">0</span></div>
+        <div class="total">Final Total: <span id="final-total">0</span></div>
+
+        <label for="template-select">Select PDF Template:</label>
+        <select id="template-select">
+            <option value="Template 1">Template 1 - Nibedita Medical Store</option>
+            <option value="Template 2">Template 2 - Sunshine Pharmacy</option>
+            <option value="Template 3">Template 3 - HealthPlus Store</option>
+            <option value="Template 4">Template 4 - MediCare Solutions</option>
+        </select>
+
+        <button id="generate-pdf">Generate PDF</button>
+
+        <h4>Powered by RKSOFTBD Ltd.</h4>
+    </div>
+
+    <!-- Include jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <!-- Include jsPDF AutoTable Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        const medicineList = document.getElementById('medicine-list');
+        const totalAmountEl = document.getElementById('total-amount');
+        const vatEl = document.getElementById('vat');
+        const discountEl = document.getElementById('discount');
+        const finalTotalEl = document.getElementById('final-total');
+
+        let totalAmount = 0;
+
+        const storeDetails = {
+            "Template 1": {
+                name: "Nibedita Medical Store",
+                address: "18/2, Rankin Street, Wari, Dhaka",
+                phone: "01915824432",
+            },
+            "Template 2": {
+                name: "Sunshine Pharmacy",
+                address: "22/A, Green Road, Dhaka",
+                phone: "01811123456",
+            },
+            "Template 3": {
+                name: "HealthPlus Store",
+                address: "15, Banani, Dhaka",
+                phone: "01712345678",
+            },
+            "Template 4": {
+                name: "MediCare Solutions",
+                address: "25, Dhanmondi, Dhaka",
+                phone: "01698765432",
+            },
+        };
+
+        document.getElementById('add-medicine').addEventListener('click', () => {
+            const name = document.getElementById('medicine-name').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const price = parseFloat(document.getElementById('price').value);
+
+            if (name && quantity > 0 && price > 0) {
+                const subtotal = quantity * price;
+                totalAmount += subtotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${quantity}</td>
+                    <td>${price.toFixed(2)}</td>
+                    <td>${subtotal.toFixed(2)}</td>
+                `;
+                medicineList.appendChild(row);
+
+                updateTotals();
+                clearInputs();
+            } else {
+                alert('Please fill out all fields correctly.');
+            }
+        });
+
+        function updateTotals() {
+            const vat = totalAmount * 0.05;
+            const discount = totalAmount * 0.05;
+            const finalTotal = totalAmount + vat - discount;
+
+            totalAmountEl.textContent = totalAmount.toFixed(2);
+            vatEl.textContent = vat.toFixed(2);
+            discountEl.textContent = discount.toFixed(2);
+            finalTotalEl.textContent = finalTotal.toFixed(2);
+        }
+
+        function clearInputs() {
+            document.getElementById('medicine-name').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('price').value = '';
+        }
+
+        document.getElementById('generate-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const template = document.getElementById('template-select').value;
+            const store = storeDetails[template];
+
+            let y = 10;
+            doc.setFont("Courier", "bold");
+            doc.setFontSize(14);
+            doc.text(store.name, 105, y, { align: "center" });
+            y += 5;
+            doc.setFontSize(10);
+            doc.text(store.address, 105, y, { align: "center" });
+            y += 5;
+            doc.text(`Phone: ${store.phone}`, 105, y, { align: "center" });
+            y += 10;
+
+            const customerName = document.getElementById('customer-name').value;
+            const address = document.getElementById('address').value;
+            const phone = document.getElementById('phone').value;
+            const date = document.getElementById('date').value;
+
+            doc.text(`Customer Name: ${customerName}`, 10, y);
+            y += 5;
+            doc.text(`Address: ${address}`, 10, y);
+            y += 5;
+            doc.text(`Phone: ${phone}`, 10, y);
+            y += 5;
+            doc.text(`Date: ${date}`, 10, y);
+            y += 10;
+
+            doc.autoTable({
+                head: [['Medicine', 'Quantity', 'Unit Price', 'Subtotal']],
+                body: Array.from(medicineList.children).map(row => {
+                    const cols = row.children;
+                    return [
+                        cols[0].textContent,
+                        cols[1].textContent,
+                        cols[2].textContent,
+                        cols[3].textContent
+                    ];
+                }),
+                startY: y,
+                styles: { fontSize: 10 },
+            });
+
+            y = doc.lastAutoTable.finalY + 10;
+            doc.text(`Total Amount: ${totalAmountEl.textContent} BDT`, 10, y);
+            y += 5;
+            doc.text(`VAT (5%): ${vatEl.textContent} BDT`, 10, y);
+            y += 5;
+            doc.text(`Discount (5%): ${discountEl.textContent} BDT`, 10, y);
+            y += 5;
+            doc.text(`Final Total: ${finalTotalEl.textContent} BDT`, 10, y);
+
+            y += 15;
+            doc.text("Thank you for visiting!", 105, y, { align: "center" });
+            doc.save(`${store.name.replace(/ /g, "_").toLowerCase()}_invoice.pdf`);
+        });
+    </script>
+</body>
+</html>
